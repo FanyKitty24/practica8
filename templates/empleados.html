@@ -1,0 +1,22 @@
+<!-- cambiar la consistencia  -->
+<table class="table table-sm">
+    <thead class="table-active">
+        <tr>
+            <th>Id</th>
+            <th>Nombre</th>
+            <th>Número</th>
+            <th>Fecha de Ingreso</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        <!-- ng-repeat, solo cambiar el nombre  -->
+        <tr ng-repeat="x in empleados">
+            <td scope="col">{{ x.idEmpleado }}</td>
+            <td scope="col">{{ x.nombreEmpleado }}</td>
+            <td scope="col">{{ x.numero }}</td>
+            <td scope="col">{{ x.fechaIngreso }}</td>
+            <td scope="col"></td>
+        </tr>
+    </tbody>
+</table>

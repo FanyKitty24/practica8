@@ -1,0 +1,20 @@
+<!-- cambiar la consistencia  -->
+<table class="table table-sm">
+    <thead class="table-active">
+        <tr>
+            <th>Id</th>
+            <th>Fecha del Reporte</th>
+            <th>Comentarios</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        <!-- ng-repeat, solo cambiar el nombre  -->
+        <tr ng-repeat="x in reportes">
+            <td scope="col">{{ x.idReporte }}</td>
+            <td scope="col">{{ x.fecha }}</td>
+            <td scope="col">{{ x.comentarios }}</td>
+            <td scope="col"></td>
+        </tr>
+    </tbody>
+</table>

@@ -3,18 +3,18 @@
         <tr>
             <th>Id</th>
             <th>Nombre</th>
-            <th>Precio</th>
-            <th>Existencias</th>
+            <th>Reporte</th>
+            <th>Estado</th>
+            <th></th>
         </tr>
     </thead>
     <tbody>
-        {% for producto in productos %}
-        <tr>
-            <td>{{ producto.Id_Producto }}</td>
-            <td>{{ producto.Nombre_Producto }}</td>
-            <td>{{ producto.Precio }}</td>
-            <td>{{ producto.Existencias }}</td>
+        <tr ng-repeat="x in asistencias">
+            <td scope="col">{{ x.idAsistencia }}</td>
+            <td scope="col">{{ x.empleado }}</td>
+            <td scope="col">{{ x.reporte }}</td>
+            <td scope="col">{{ x.estado }}</td>
+            <td scope="col"></td>
         </tr>
-        {% endfor %}
     </tbody>
 </table>

@@ -9,9 +9,9 @@ CORS(app)
 
 # Configuración de la base de datos
 db_config = {
-    "host": "127.0.0.1",
-    "user": "tu_usuario",
-    "password": "tu_contraseña",
+    "host": "2a02:4780:2b:1234::5a",
+    "user": "u861594054_fanysl06",
+    "password": "k6@Tt:n!hE",
     "database": "u861594054_prac4_awi"
 }
 

@@ -1,209 +1,65 @@
-# python.exe -m venv .venv
-# cd .venv/Scripts
-# activate.bat
-# py -m ensurepip --upgrade
-# pip install -r requirements.txt
-
-from flask import Flask
-
-from flask import render_template
-from flask import request
-from flask import jsonify, make_response
-
+from flask import Flask, render_template, request, jsonify, make_response
 import mysql.connector
-
 import datetime
 import pytz
-
 from flask_cors import CORS, cross_origin
-
-con = mysql.connector.connect(
-    host="185.232.14.52",
-    database="u861594054_prac4_awi",
-    user="u861594054_fanysl06",
-    password="k6@Tt:n!hE"
-)
 
 app = Flask(__name__)
 CORS(app)
 
-@app.route("/")
-def index():
-    if not con.is_connected():
-        con.reconnect()
+# Configuración de la base de datos
+db_config = {
+    "host": "127.0.0.1",
+    "user": "tu_usuario",
+    "password": "tu_contraseña",
+    "database": "u861594054_prac4_awi"
+}
 
-    con.close()
+# Función para conectar a la base de datos
+def conectar_bd():
+    return mysql.connector.connect(**db_config)
 
-    return render_template("index.html")
-
-@app.route("/app")
-def app2():
-    if not con.is_connected():
-        con.reconnect()
-
-    con.close()
-
-    return "<h5>Hola, soy la view app</h5>"
-
-@app.route("/productos")
-def productos():
-    if not con.is_connected():
-        con.reconnect()
-
-    cursor = con.cursor(dictionary=True)
-    sql    = """
-    SELECT Id_Producto,
-           Nombre_Producto,
-           Precio,
-           Existencias
-
-    FROM productos
-
-    LIMIT 10 OFFSET 0
-    """
-
-    cursor.execute(sql)
-    registros = cursor.fetchall()
-
-    # Si manejas fechas y horas
-    """
-    for registro in registros:
-        fecha_hora = registro["Fecha_Hora"]
-
-        registro["Fecha_Hora"] = fecha_hora.strftime("%Y-%m-%d %H:%M:%S")
-        registro["Fecha"]      = fecha_hora.strftime("%d/%m/%Y")
-        registro["Hora"]       = fecha_hora.strftime("%H:%M:%S")
-    """
-
-    return render_template("productos.html", productos=registros)
-
-@app.route("/productos/buscar", methods=["GET"])
-def buscarProductos():
-    if not con.is_connected():
-        con.reconnect()
-
-    args     = request.args
-    busqueda = args["busqueda"]
-    busqueda = f"%{busqueda}%"
-    
-    cursor = con.cursor(dictionary=True)
-    sql    = """
-    SELECT Id_Producto,
-           Nombre_Producto,
-           Precio,
-           Existencias
-
-    FROM productos
-
-    WHERE Nombre_Producto LIKE %s
-    OR    Precio          LIKE %s
-    OR    Existencias     LIKE %s
-
-    ORDER BY Id_Producto DESC
-
-    LIMIT 10 OFFSET 0
-    """
-    val    = (busqueda, busqueda, busqueda)
-
+# Ruta para obtener las asistencias desde la vista `vistas`
+@app.route('/asistencias', methods=['GET'])
+@cross_origin()
+def obtener_asistencias():
     try:
-        cursor.execute(sql, val)
-        registros = cursor.fetchall()
+        conn = conectar_bd()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM vistas")
+        asistencias = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return jsonify(asistencias)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
-        # Si manejas fechas y horas
-        """
-        for registro in registros:
-            fecha_hora = registro["Fecha_Hora"]
+# Ruta para registrar una nueva asistencia
+@app.route('/asistencias', methods=['POST'])
+@cross_origin()
+def registrar_asistencia():
+    try:
+        data = request.get_json()
+        id_empleado = data.get("idEmpleado")
+        id_reporte = data.get("idReporte")
+        estado = data.get("estado", "A")  # Estado por defecto 'A'
 
-            registro["Fecha_Hora"] = fecha_hora.strftime("%Y-%m-%d %H:%M:%S")
-            registro["Fecha"]      = fecha_hora.strftime("%d/%m/%Y")
-            registro["Hora"]       = fecha_hora.strftime("%H:%M:%S")
-        """
+        if not id_empleado or not id_reporte:
+            return jsonify({"error": "Faltan datos obligatorios"}), 400
 
-    except mysql.connector.errors.ProgrammingError as error:
-        print(f"Ocurrió un error de programación en MySQL: {error}")
-        registros = []
+        conn = conectar_bd()
+        cursor = conn.cursor()
 
-    finally:
-        con.close()
+        query = "INSERT INTO asistencias (idEmpleado, idReporte, estado) VALUES (%s, %s, %s)"
+        cursor.execute(query, (id_empleado, id_reporte, estado))
+        conn.commit()
+        
+        cursor.close()
+        conn.close()
 
-    return make_response(jsonify(registros))
+        return jsonify({"mensaje": "Asistencia registrada correctamente"}), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
-@app.route("/producto", methods=["POST"])
-# Usar cuando solo se quiera usar CORS en rutas específicas
-# @cross_origin()
-def guardarProducto():
-    if not con.is_connected():
-        con.reconnect()
-
-    id          = request.form["id"]
-    nombre      = request.form["nombre"]
-    precio      = request.form["precio"]
-    existencias = request.form["existencias"]
-    # fechahora   = datetime.datetime.now(pytz.timezone("America/Matamoros"))
-    
-    cursor = con.cursor()
-
-    if id:
-        sql = """
-        UPDATE productos
-
-        SET Nombre_Producto = %s,
-            Precio          = %s,
-            Existencias     = %s
-
-        WHERE Id_Producto = %s
-        """
-        val = (nombre, precio, existencias, id)
-    else:
-        sql = """
-        INSERT INTO productos (Nombre_Producto, Precio, Existencias)
-                    VALUES    (%s,          %s,      %s)
-        """
-        val =                 (nombre, precio, existencias)
-    
-    cursor.execute(sql, val)
-    con.commit()
-    con.close()
-
-    return make_response(jsonify({}))
-
-@app.route("/producto/<int:id>")
-def editarProducto(id):
-    if not con.is_connected():
-        con.reconnect()
-
-    cursor = con.cursor(dictionary=True)
-    sql    = """
-    SELECT Id_Producto, Nombre_Producto, Precio, Existencias
-
-    FROM productos
-
-    WHERE Id_Producto = %s
-    """
-    val    = (id,)
-
-    cursor.execute(sql, val)
-    registros = cursor.fetchall()
-    con.close()
-
-    return make_response(jsonify(registros))
-
-@app.route("/producto/eliminar", methods=["POST"])
-def eliminarProducto():
-    if not con.is_connected():
-        con.reconnect()
-
-    id = request.form["id"]
-
-    cursor = con.cursor(dictionary=True)
-    sql    = """
-    DELETE FROM productos
-    WHERE Id_Producto = %s
-    """
-    val    = (id,)
-
-    cursor.execute(sql, val)
-    con.commit()
-    con.close()
-
-    return make_response(jsonify({}))
+if __name__ == '__main__':
+    app.run(debug=True)

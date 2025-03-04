@@ -40,18 +40,18 @@ def obtener_asistencias():
 def registrar_asistencia():
     try:
         data = request.get_json()
-        id_empleado = data.get("idEmpleado")
-        id_reporte = data.get("idReporte")
+        idEmpleado = data.get("idEmpleado")
+        idReporte = data.get("idReporte")
         estado = data.get("estado", "A")  # Estado por defecto 'A'
 
-        if not id_empleado or not id_reporte:
+        if not idEmpleado or not idReporte:
             return jsonify({"error": "Faltan datos obligatorios"}), 400
 
         conn = conectar_bd()
         cursor = conn.cursor()
 
         query = "INSERT INTO asistencias (idEmpleado, idReporte, estado) VALUES (%s, %s, %s)"
-        cursor.execute(query, (id_empleado, id_reporte, estado))
+        cursor.execute(query, (idEmpleado, idReporte, estado))
         conn.commit()
         
         cursor.close()

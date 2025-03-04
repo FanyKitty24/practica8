@@ -4,19 +4,23 @@ from mysql.connector import pooling
 import datetime
 import pytz
 from flask_cors import CORS, cross_origin
+import os
 
 app = Flask(__name__)
 CORS(app)
 
-# Configuración de la base de datos
+# Configuración de la base de datos utilizando variables de entorno 
+# (Render permite definirlas en el panel de configuración)
 db_config = {
-    "host": "82.197.82.90",
-    "user": "u861594054_fanysl06",
-    "password": "f9GQT5Bq9M]",
-    "database": "u861594054_prac4_awi"
+    "host": os.environ.get("DB_HOST", "82.197.82.90"),
+    "user": os.environ.get("DB_USER", "u861594054_fanysl06"),
+    "password": os.environ.get("DB_PASSWORD", "f9GQT5Bq9M]"),
+    "database": os.environ.get("DB_DATABASE", "u861594054_prac4_awi"),
+    # Si tu servidor MySQL no requiere SSL, esta opción puede ayudar:
+    "ssl_disabled": True
 }
 
-# Creación de un pool de conexiones para mejorar el manejo de sesiones
+# Creación del pool de conexiones
 connection_pool = pooling.MySQLConnectionPool(
     pool_name="mypool",
     pool_size=5,
@@ -28,7 +32,7 @@ connection_pool = pooling.MySQLConnectionPool(
 def conectar_bd():
     return connection_pool.get_connection()
 
-# Ruta para obtener las asistencias desde la vista `vistas`
+# Endpoint para obtener las asistencias desde la vista 'vistas'
 @app.route('/asistencias', methods=['GET'])
 @cross_origin()
 def obtener_asistencias():
@@ -43,7 +47,7 @@ def obtener_asistencias():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# Ruta para registrar una nueva asistencia
+# Endpoint para registrar una nueva asistencia
 @app.route('/asistencias', methods=['POST'])
 @cross_origin()
 def registrar_asistencia():
@@ -51,7 +55,7 @@ def registrar_asistencia():
         data = request.get_json()
         idEmpleado = data.get("idEmpleado")
         idReporte = data.get("idReporte")
-        estado = data.get("estado", "A")  # Estado por defecto 'A'
+        estado = data.get("estado", "A")  # Valor por defecto 'A'
         if not idEmpleado or not idReporte:
             return jsonify({"error": "Faltan datos obligatorios"}), 400
         conn = conectar_bd()
@@ -66,4 +70,5 @@ def registrar_asistencia():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=True)

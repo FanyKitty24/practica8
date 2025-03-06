@@ -1,0 +1,21 @@
+<table class="table table-sm">
+    <thead class="table-active">
+        <tr>
+            <th>Id</th>
+            <th>Nombre</th>
+            <th>reporte</th>
+            <th>estado</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for x in asistencias %}
+        <tr>
+            <td>{{ x.idAsistencia }}</td>
+            <td>{{ x.empleado }}</td>
+            <td>{{ x.reporte }}</td>
+            <td>{{ x.estado }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>

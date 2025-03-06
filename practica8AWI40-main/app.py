@@ -11,9 +11,9 @@ CORS(app)
 def conectar():
     return mysql.connector.connect(
         host="82.197.82.90",
-        database="u861594054_app9",
-        user="u861594054_Misael2009",
-        password="NZqhQyiNZ3Tg8JJ"
+        database="u861594054_prac8_awi",
+        user="u861594054_fany_sl06",
+        password="tGD@GgWR+1"
     )
 
 @app.route("/")
